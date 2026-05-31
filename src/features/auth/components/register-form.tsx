@@ -18,10 +18,18 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
+const getSafeRedirect = (value: string | null) => {
+  if (!value?.startsWith("/") || value.startsWith("//")) {
+    return undefined;
+  }
+
+  return value;
+};
+
 export function RegisterForm() {
   const { register: registerAccount } = useAuth();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? undefined;
+  const redirectTo = getSafeRedirect(searchParams.get("redirect"));
   const {
     register,
     handleSubmit,

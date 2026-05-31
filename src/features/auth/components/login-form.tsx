@@ -17,10 +17,18 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const getSafeRedirect = (value: string | null) => {
+  if (!value?.startsWith("/") || value.startsWith("//")) {
+    return undefined;
+  }
+
+  return value;
+};
+
 export function LoginForm() {
   const { login } = useAuth();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? undefined;
+  const redirectTo = getSafeRedirect(searchParams.get("redirect"));
   const {
     register,
     handleSubmit,
@@ -28,14 +36,21 @@ export function LoginForm() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "admin@example.com",
-      password: "change-me-admin-password",
+      email: "",
+      password: "",
     },
   });
 
   return (
     <form className="form-stack" onSubmit={handleSubmit((values) => login(values, redirectTo))}>
-      <InputField label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register("email")} />
+      <InputField
+        label="Email"
+        type="email"
+        autoComplete="email"
+        placeholder="admin@example.com"
+        error={errors.email?.message}
+        {...register("email")}
+      />
       <InputField
         label="Password"
         type="password"
