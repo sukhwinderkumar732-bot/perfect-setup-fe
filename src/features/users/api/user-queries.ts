@@ -6,18 +6,19 @@ import type { ListQueryParams } from "@/types/api";
 import type { CreateUserInput, UpdateUserInput } from "../types/user";
 import { usersApi } from "./users-api";
 
-export const useUsers = (params: ListQueryParams) =>
+export const useUsers = (params: ListQueryParams, options: { enabled?: boolean } = {}) =>
   useQuery({
     queryKey: queryKeys.users.list(params),
     queryFn: () => usersApi.list(params),
     placeholderData: (previous) => previous,
+    enabled: options.enabled,
   });
 
-export const useUser = (id: number) =>
+export const useUser = (id: number, options: { enabled?: boolean } = {}) =>
   useQuery({
     queryKey: queryKeys.users.detail(id),
     queryFn: () => usersApi.getById(id),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: (options.enabled ?? true) && Number.isFinite(id) && id > 0,
   });
 
 export const useCreateUser = () => {

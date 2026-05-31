@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { LoginForm } from "@/features/auth/components/login-form";
+import { VerifyEmailPanel } from "@/features/auth/components/verify-email-panel";
 import { env } from "@/lib/config/env";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Verify Email",
 };
 
-export default function LoginPage() {
+export default function VerifyEmailPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
@@ -15,13 +15,13 @@ export default function LoginPage() {
           <span className="brand-mark">PA</span>
           <div>
             <strong>{env.appName}</strong>
-            <p style={{ margin: "4px 0 0" }}>Admin control center</p>
+            <p style={{ margin: "4px 0 0" }}>Email verification</p>
           </div>
         </div>
-        <h1>Sign in</h1>
-        <p>Use an administrator account to manage backend resources.</p>
+        <h1>Verify email</h1>
+        <p>Confirm the email address attached to your account.</p>
         <Suspense fallback={null}>
-          <LoginForm />
+          <VerifyEmailPanel />
         </Suspense>
       </section>
     </main>

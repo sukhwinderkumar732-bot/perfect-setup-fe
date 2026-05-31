@@ -16,7 +16,7 @@ import { setRefreshHandler } from "@/lib/api/http-client";
 import { getErrorMessage } from "@/lib/api/api-error";
 import { tokenStore } from "@/lib/api/token-store";
 import { queryKeys } from "@/lib/query/query-keys";
-import { authApi, type LoginInput } from "../api/auth-api";
+import { authApi, type LoginInput, type RegisterInput } from "../api/auth-api";
 import type { User } from "@/features/users/types/user";
 
 type AuthContextValue = {
@@ -24,9 +24,11 @@ type AuthContextValue = {
   isBootstrapping: boolean;
   isAuthenticated: boolean;
   can: (permission: Permission) => boolean;
-  login: (input: LoginInput) => Promise<void>;
+  register: (input: RegisterInput, redirectTo?: string) => Promise<void>;
+  login: (input: LoginInput, redirectTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 };
 
 type Permission = "users:read" | "users:create" | "users:update" | "users:delete";
@@ -88,12 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,
-    onSuccess: (session) => {
-      applySession(session.accessToken, session.user);
-      toast.success("Signed in successfully");
-      router.replace("/dashboard");
-    },
     onError: (error) => toast.error(getErrorMessage(error, "Unable to sign in")),
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: authApi.register,
+    onError: (error) => toast.error(getErrorMessage(error, "Unable to create account")),
   });
 
   const logoutMutation = useMutation({
@@ -124,8 +126,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isBootstrapping,
       isAuthenticated: Boolean(user),
       can: (permission) => (user ? rolePermissions[user.role].includes(permission) : false),
-      login: async (input) => {
-        await loginMutation.mutateAsync(input);
+      register: async (input, redirectTo) => {
+        const session = await registerMutation.mutateAsync(input);
+        applySession(session.accessToken, session.user);
+        toast.success("Account created successfully");
+        router.replace(redirectTo ?? "/dashboard");
+      },
+      login: async (input, redirectTo) => {
+        const session = await loginMutation.mutateAsync(input);
+        applySession(session.accessToken, session.user);
+        toast.success("Signed in successfully");
+        router.replace(redirectTo ?? "/dashboard");
       },
       logout: async () => {
         await logoutMutation.mutateAsync();
@@ -133,8 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logoutAll: async () => {
         await logoutAllMutation.mutateAsync();
       },
+      refreshUser: async () => {
+        const response = await authApi.me();
+        setUser(response);
+        queryClient.setQueryData(queryKeys.auth.me, response);
+      },
     }),
-    [isBootstrapping, loginMutation, logoutAllMutation, logoutMutation, user],
+    [applySession, isBootstrapping, loginMutation, logoutAllMutation, logoutMutation, queryClient, registerMutation, router, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

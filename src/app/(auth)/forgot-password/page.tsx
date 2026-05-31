@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { LoginForm } from "@/features/auth/components/login-form";
+import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 import { env } from "@/lib/config/env";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Forgot Password",
 };
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
@@ -15,14 +14,12 @@ export default function LoginPage() {
           <span className="brand-mark">PA</span>
           <div>
             <strong>{env.appName}</strong>
-            <p style={{ margin: "4px 0 0" }}>Admin control center</p>
+            <p style={{ margin: "4px 0 0" }}>Account recovery</p>
           </div>
         </div>
-        <h1>Sign in</h1>
-        <p>Use an administrator account to manage backend resources.</p>
-        <Suspense fallback={null}>
-          <LoginForm />
-        </Suspense>
+        <h1>Reset access</h1>
+        <p>Request a password reset link for an existing account.</p>
+        <ForgotPasswordForm />
       </section>
     </main>
   );

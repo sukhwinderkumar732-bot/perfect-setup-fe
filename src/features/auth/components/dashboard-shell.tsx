@@ -3,19 +3,20 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, ShieldCheck, Users } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, ShieldCheck, UserCircle, Users } from "lucide-react";
 import { env } from "@/lib/config/env";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../hooks/use-auth";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/users", label: "Users", icon: Users },
+  { href: "/users", label: "Users", icon: Users, permission: "users:read" as const },
+  { href: "/account", label: "Account", icon: UserCircle },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, can, logout } = useAuth();
 
   return (
     <div className="dashboard-shell">
@@ -29,6 +30,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </Link>
         <nav className="sidebar-nav" aria-label="Admin navigation">
           {navigation.map((item) => {
+            if (item.permission && !can(item.permission)) {
+              return null;
+            }
+
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -39,6 +44,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
+        <a className="nav-item sidebar-link" href={`${env.apiUrl}/api/docs`} target="_blank" rel="noreferrer">
+          <BookOpen size={18} />
+          API docs
+        </a>
       </aside>
       <div className="main-column">
         <header className="topbar">
@@ -46,7 +55,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <ShieldCheck size={18} />
             <span>
               <strong>{user?.name}</strong>
-              <span className="muted"> · {user?.role}</span>
+              <span className="muted"> - {user?.role}</span>
             </span>
           </div>
           <Button type="button" variant="secondary" onClick={() => void logout()}>

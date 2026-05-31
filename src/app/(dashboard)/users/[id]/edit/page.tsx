@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import { UserForm } from "@/features/users/components/user-form";
 import { useUpdateUser, useUser } from "@/features/users/api/user-queries";
 import type { UpdateUserFormValues } from "@/features/users/schemas/user-schemas";
@@ -11,13 +12,19 @@ export default function EditUserPage() {
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
   const router = useRouter();
-  const userQuery = useUser(id);
+  const { can } = useAuth();
+  const canUpdateUsers = can("users:update");
+  const userQuery = useUser(id, { enabled: canUpdateUsers });
   const updateUser = useUpdateUser(id);
 
   const handleSubmit = async (values: UpdateUserFormValues) => {
     await updateUser.mutateAsync(values);
     router.push("/users");
   };
+
+  if (!canUpdateUsers) {
+    return <EmptyState title="Access restricted" description="Editing users requires an administrator account." />;
+  }
 
   if (userQuery.isLoading) {
     return (

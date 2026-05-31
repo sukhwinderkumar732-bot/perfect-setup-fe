@@ -10,6 +10,7 @@ import { InputField } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import type { User } from "../types/user";
 import { useDeleteUser, useUsers } from "../api/user-queries";
 
@@ -18,12 +19,14 @@ const formatDate = (value: string | null) => (value ? new Intl.DateTimeFormat("e
 export function UsersTable() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { can } = useAuth();
+  const canReadUsers = can("users:read");
   const page = Number(searchParams.get("page") ?? "1");
   const search = searchParams.get("search") ?? "";
   const [searchDraft, setSearchDraft] = useState(search);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<User | null>(null);
-  const usersQuery = useUsers({ page, limit: 10, search: search || undefined });
+  const usersQuery = useUsers({ page, limit: 10, search: search || undefined }, { enabled: canReadUsers });
   const deleteUser = useDeleteUser();
 
   const users = useMemo(() => usersQuery.data?.data ?? [], [usersQuery.data?.data]);
@@ -76,6 +79,10 @@ export function UsersTable() {
       )),
     [users],
   );
+
+  if (!canReadUsers) {
+    return <EmptyState title="Access restricted" description="User management requires an administrator account." />;
+  }
 
   return (
     <section className="panel">

@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? undefined;
   const {
     register,
     handleSubmit,
@@ -30,7 +34,7 @@ export function LoginForm() {
   });
 
   return (
-    <form className="form-stack" onSubmit={handleSubmit(login)}>
+    <form className="form-stack" onSubmit={handleSubmit((values) => login(values, redirectTo))}>
       <InputField label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register("email")} />
       <InputField
         label="Password"
@@ -43,6 +47,10 @@ export function LoginForm() {
         {isSubmitting ? <Loader2 size={16} className="spin" /> : <LogIn size={16} />}
         Sign in
       </Button>
+      <div className="auth-links">
+        <Link href="/forgot-password">Forgot password?</Link>
+        <Link href="/register">Create account</Link>
+      </div>
     </form>
   );
 }

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { LoginForm } from "@/features/auth/components/login-form";
+import { RegisterForm } from "@/features/auth/components/register-form";
 import { env } from "@/lib/config/env";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Register",
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
@@ -15,13 +15,13 @@ export default function LoginPage() {
           <span className="brand-mark">PA</span>
           <div>
             <strong>{env.appName}</strong>
-            <p style={{ margin: "4px 0 0" }}>Admin control center</p>
+            <p style={{ margin: "4px 0 0" }}>Create a managed account</p>
           </div>
         </div>
-        <h1>Sign in</h1>
-        <p>Use an administrator account to manage backend resources.</p>
+        <h1>Create account</h1>
+        <p>Register an application user and start a secure session.</p>
         <Suspense fallback={null}>
-          <LoginForm />
+          <RegisterForm />
         </Suspense>
       </section>
     </main>

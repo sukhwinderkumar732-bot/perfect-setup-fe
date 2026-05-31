@@ -7,6 +7,12 @@ export type AuthSession = {
   user: User;
 };
 
+export type RegisterInput = {
+  name: string;
+  email: string;
+  password: string;
+};
+
 export type LoginInput = {
   email: string;
   password: string;
@@ -22,6 +28,8 @@ export type ResetPasswordInput = {
 };
 
 export const authApi = {
+  register: async (input: RegisterInput) =>
+    (await httpClient.post<ApiResponse<AuthSession>>("/api/auth/register", input, { auth: false })).data,
   login: async (input: LoginInput) =>
     (await httpClient.post<ApiResponse<AuthSession>>("/api/auth/login", input, { auth: false })).data,
   refresh: async () =>
@@ -31,6 +39,8 @@ export const authApi = {
   logoutAll: async () => httpClient.post<void>("/api/auth/logout-all"),
   requestEmailVerification: async () =>
     httpClient.post<ApiMessageResponse>("/api/auth/verify-email/request"),
+  verifyEmail: async (token: string) =>
+    httpClient.get<ApiMessageResponse>(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, { auth: false }),
   forgotPassword: async (input: ForgotPasswordInput) =>
     httpClient.post<ApiMessageResponse>("/api/auth/forgot-password", input, { auth: false }),
   resetPassword: async (input: ResetPasswordInput) =>
