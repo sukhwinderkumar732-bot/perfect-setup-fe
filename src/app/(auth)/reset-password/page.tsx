@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
         <h1>Reset password</h1>
-        <p>Use the reset token from your recovery email.</p>
+        <p>Choose a new password for your account.</p>
         <Suspense fallback={null}>
           <ResetPasswordForm />
         </Suspense>

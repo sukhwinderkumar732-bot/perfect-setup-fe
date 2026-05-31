@@ -14,7 +14,6 @@ import { getErrorMessage } from "@/lib/api/api-error";
 import { authApi } from "../api/auth-api";
 
 const resetPasswordSchema = z.object({
-  token: z.string().min(32, "Reset token is required"),
   password: z.string().min(6, "Password must be at least 6 characters").max(128, "Password cannot exceed 128 characters"),
 });
 
@@ -22,6 +21,8 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+  const hasValidToken = token.length >= 32;
   const [isComplete, setIsComplete] = useState(false);
   const {
     register,
@@ -30,14 +31,18 @@ export function ResetPasswordForm() {
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token: searchParams.get("token") ?? "",
       password: "",
     },
   });
 
   const onSubmit = async (values: ResetPasswordFormValues) => {
+    if (!hasValidToken) {
+      toast.error("Reset link is missing or invalid");
+      return;
+    }
+
     try {
-      await authApi.resetPassword(values);
+      await authApi.resetPassword({ token, password: values.password });
       setIsComplete(true);
       toast.success("Password reset successfully");
     } catch (error) {
@@ -48,7 +53,9 @@ export function ResetPasswordForm() {
   return (
     <form className="form-stack" onSubmit={handleSubmit(onSubmit)}>
       {isComplete ? <div className="notice notice-success">Your password has been reset. You can sign in now.</div> : null}
-      <InputField label="Reset token" autoComplete="one-time-code" error={errors.token?.message} {...register("token")} />
+      {!hasValidToken ? (
+        <div className="notice notice-danger">This reset link is missing or invalid. Please request a new password reset email.</div>
+      ) : null}
       <InputField
         label="New password"
         type="password"
@@ -56,7 +63,7 @@ export function ResetPasswordForm() {
         error={errors.password?.message}
         {...register("password")}
       />
-      <Button type="submit" disabled={isSubmitting || isComplete}>
+      <Button type="submit" disabled={isSubmitting || isComplete || !hasValidToken}>
         {isSubmitting ? <Loader2 size={16} className="spin" /> : <KeyRound size={16} />}
         Reset password
       </Button>
